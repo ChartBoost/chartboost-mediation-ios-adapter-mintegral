@@ -1,0 +1,44 @@
+//
+//  MintegralAdapterAd.swift
+//  ChartboostHeliumAdapterMintegral
+//
+
+import Foundation
+import HeliumSdk
+import MTGSDK
+import UIKit
+
+/// Base class for Helium Mintegral adapter ads.
+class MintegralAdapterAd: NSObject {
+    
+    /// The partner adapter that created this ad.
+    let adapter: PartnerAdapter
+    
+    /// The ad load request associated to the ad.
+    /// It should be the one provided on `PartnerAdapter.makeAd(request:delegate:)`.
+    let request: PartnerAdLoadRequest
+        
+    /// The partner ad delegate to send ad life-cycle events to.
+    /// It should be the one provided on `PartnerAdapter.makeAd(request:delegate:)`.
+    weak var delegate: PartnerAdDelegate?
+    
+    /// Mintegral's Unit ID needed to load an ad.
+    let unitID: String
+    
+    /// The completion handler to notify Helium of ad load completion result.
+    var loadCompletion: ((Result<PartnerEventDetails, Error>) -> Void)?
+    
+    /// The completion handler to notify Helium of ad load completion result.
+    var showCompletion: ((Result<PartnerEventDetails, Error>) -> Void)?
+    
+    init(adapter: PartnerAdapter, request: PartnerAdLoadRequest, delegate: PartnerAdDelegate) throws {
+        self.adapter = adapter
+        self.request = request
+        self.delegate = delegate
+        if let unitID = request.partnerSettings[request.adm == nil ? "mintegral_unit_id" :  "unit_id"] {
+            self.unitID = unitID
+        } else {
+            throw adapter.error(.adCreationFailure(request), description: "Missing unit ID in request")
+        }
+    }
+}
