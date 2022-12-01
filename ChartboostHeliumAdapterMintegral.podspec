@@ -1,8 +1,8 @@
 Pod::Spec.new do |spec|
   spec.name        = 'ChartboostHeliumAdapterMintegral'
-  spec.version     = '4.7.1.0.0'
+  spec.version     = '4.7.1.9.0'
   spec.license     = { :type => 'MIT', :file => 'LICENSE.md' }
-  spec.homepage    = 'https://github.com/ChartBoost/helium-ios-adapter-chartboost'
+  spec.homepage    = 'https://github.com/ChartBoost/helium-ios-adapter-mintegral'
   spec.authors     = { 'Chartboost' => 'https://www.chartboost.com/' }
   spec.summary     = 'Helium iOS SDK Mintegral adapter.'
   spec.description = 'Mintegral Adapters for mediating through Helium. Supported ad formats: Banner, Interstitial, and Rewarded.'
@@ -23,5 +23,6 @@ Pod::Spec.new do |spec|
   spec.dependency 'ChartboostHelium', '~> 4.0'
 
   # Partner network SDK and version that this adapter is certified to work with.
-  spec.dependency 'MintegralAdSDK', '7.1' 
+  spec.dependency 'MintegralAdSDK', '7.1.9' 
+  spec.static_framework = true
 end
