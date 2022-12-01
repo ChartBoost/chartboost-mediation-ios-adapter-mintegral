@@ -44,8 +44,8 @@ final class MintegralAdapter: PartnerAdapter {
             log(.setUpFailed(error))
             return completion(error)
         }
-        guard let apiKey = configuration.appKey, !appID.isEmpty else {
-            let error = error(.missingSetUpParameter(key: .appKeyKey))
+        guard let apiKey = configuration.apiKey, !apiKey.isEmpty else {
+            let error = error(.missingSetUpParameter(key: .apiKey))
             log(.setUpFailed(error))
             return completion(error)
         }
@@ -135,12 +135,12 @@ final class MintegralAdapter: PartnerAdapter {
 /// Convenience extension to access Mintegral credentials from the configuration.
 private extension PartnerConfiguration {
     var appID: String? { credentials[.appIDKey] as? String }
-    var appKey: String? { credentials[.appKeyKey] as? String }
+    var apiKey: String? { credentials[.apiKey] as? String }
 }
 
 private extension String {
     /// Mintegral app ID credentials key
     static let appIDKey = "mintegral_app_id"
-    /// Mintegral app key credentials key
-    static let appKeyKey = "app_key"
+    /// Mintegral api key credentials key
+    static let apiKey = "app_key"
 }
