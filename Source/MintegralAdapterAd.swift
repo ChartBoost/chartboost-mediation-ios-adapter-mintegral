@@ -35,7 +35,7 @@ class MintegralAdapterAd: NSObject {
         self.adapter = adapter
         self.request = request
         self.delegate = delegate
-        if let unitID = request.partnerSettings[request.adm == nil ? "mintegral_unit_id" :  "unit_id"] {
+        if let unitID = request.partnerSettings[request.adm == nil ? "mintegral_unit_id" :  "unit_id"] as? String {
             self.unitID = unitID
         } else {
             throw adapter.error(.adCreationFailure(request), description: "Missing unit ID in request")
