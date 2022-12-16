@@ -48,9 +48,7 @@ final class MintegralAdapterInterstitialAd: MintegralAdapterAd, PartnerAd {
 
         showCompletion = completion
         
-        DispatchQueue.main.async {
-            adManager.show(from: viewController)
-        }
+        adManager.show(from: viewController)
     }
 }
 

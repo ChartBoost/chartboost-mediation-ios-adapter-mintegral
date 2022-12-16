@@ -48,24 +48,22 @@ final class MintegralAdapterRewardedAd: MintegralAdapterAd, PartnerAd {
         
         showCompletion = completion
         
-        DispatchQueue.main.async { [self] in
-            if request.adm != nil {
-                MTGBidRewardAdManager.sharedInstance().showVideo(
-                    withPlacementId: request.partnerPlacement,
-                    unitId: unitID,
-                    userId: nil,
-                    delegate: self,
-                    viewController: viewController
-                )
-            } else {
-                MTGRewardAdManager.sharedInstance().showVideo(
-                    withPlacementId: request.partnerPlacement,
-                    unitId: unitID,
-                    userId: nil,
-                    delegate: self,
-                    viewController: viewController
-                )
-            }
+        if request.adm != nil {
+            MTGBidRewardAdManager.sharedInstance().showVideo(
+                withPlacementId: request.partnerPlacement,
+                unitId: unitID,
+                userId: nil,
+                delegate: self,
+                viewController: viewController
+            )
+        } else {
+            MTGRewardAdManager.sharedInstance().showVideo(
+                withPlacementId: request.partnerPlacement,
+                unitId: unitID,
+                userId: nil,
+                delegate: self,
+                viewController: viewController
+            )
         }
     }
 }
