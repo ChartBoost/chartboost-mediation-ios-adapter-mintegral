@@ -23,15 +23,13 @@ final class MintegralAdapterBannerAd: MintegralAdapterAd, PartnerAd {
         
         loadCompletion = completion
         
-        DispatchQueue.main.async { [self] in
-            let banner = makeMintegralBanner()
-            self.inlineView = banner
-            
-            if let adm = request.adm {
-                banner.loadBannerAd(withBidToken: adm)
-            } else {
-                banner.loadBannerAd()
-            }
+        let banner = makeMintegralBanner()
+        inlineView = banner
+        
+        if let adm = request.adm {
+            banner.loadBannerAd(withBidToken: adm)
+        } else {
+            banner.loadBannerAd()
         }
     }
     
