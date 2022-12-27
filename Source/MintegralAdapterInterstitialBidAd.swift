@@ -26,7 +26,7 @@ final class MintegralAdapterInterstitialBidAd: MintegralAdapterAd, PartnerAd {
         
         /// Fail early if the bid token is unavailable
         guard let adm = request.adm else {
-            let error = error(.noBidPayload)
+            let error = error(.loadFailureInvalidAdMarkup)
             log(.loadFailed(error))
             return completion(.failure(error))
         }
@@ -47,7 +47,7 @@ final class MintegralAdapterInterstitialBidAd: MintegralAdapterAd, PartnerAd {
         
         // Fail early if no bid manager available which means ad was not loaded
         guard let bidManager = bidManager else {
-            let error = error(.noAdReadyToShow)
+            let error = error(.showFailureAdNotReady)
             log(.showFailed(error))
             completion(.failure(error))
             return
@@ -68,7 +68,7 @@ extension MintegralAdapterInterstitialBidAd: MTGNewInterstitialBidAdDelegate {
     }
 
     func newInterstitialBidAdLoadFail(_ partnerError: Error, adManager: MTGNewInterstitialBidAdManager) {
-        let error = error(.loadFailure, error: partnerError)
+        let error = error(.loadFailureException, error: partnerError)
         log(.loadFailed(error))
         loadCompletion?(.failure(error)) ?? log(.loadResultIgnored)
         loadCompletion = nil
@@ -81,7 +81,7 @@ extension MintegralAdapterInterstitialBidAd: MTGNewInterstitialBidAdDelegate {
     }
 
     func newInterstitialBidAdShowFail(_ partnerError: Error, adManager: MTGNewInterstitialBidAdManager) {
-        let error = error(.showFailure, error: partnerError)
+        let error = error(.showFailureException, error: partnerError)
         log(.showFailed(error))
         showCompletion?(.failure(error)) ?? log(.showResultIgnored)
         showCompletion = nil
