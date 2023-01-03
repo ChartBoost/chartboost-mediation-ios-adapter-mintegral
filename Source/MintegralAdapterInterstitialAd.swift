@@ -40,7 +40,7 @@ final class MintegralAdapterInterstitialAd: MintegralAdapterAd, PartnerAd {
         
         // Fail early if no bid manager available which means ad was not loaded
         guard let adManager = adManager else {
-            let error = error(.noAdReadyToShow)
+            let error = error(.showFailureAdNotReady)
             log(.showFailed(error))
             completion(.failure(error))
             return
@@ -61,7 +61,7 @@ extension MintegralAdapterInterstitialAd: MTGNewInterstitialAdDelegate {
     }
 
     func newInterstitialAdLoadFail(_ partnerError: Error, adManager: MTGNewInterstitialAdManager) {
-        let error = error(.loadFailure, error: partnerError)
+        let error = error(.loadFailureUnknown, error: partnerError)
         log(.loadFailed(error))
         loadCompletion?(.failure(error)) ?? log(.loadResultIgnored)
         loadCompletion = nil
@@ -74,7 +74,7 @@ extension MintegralAdapterInterstitialAd: MTGNewInterstitialAdDelegate {
     }
 
     func newInterstitialAdShowFail(_ partnerError: Error, adManager: MTGNewInterstitialAdManager) {
-        let error = error(.showFailure, error: partnerError)
+        let error = error(.showFailureUnknown, error: partnerError)
         log(.showFailed(error))
         showCompletion?(.failure(error)) ?? log(.showResultIgnored)
         showCompletion = nil

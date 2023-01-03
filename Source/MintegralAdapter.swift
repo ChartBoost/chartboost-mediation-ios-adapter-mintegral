@@ -40,12 +40,12 @@ final class MintegralAdapter: PartnerAdapter {
         
         // Get credentials, fail early if they are unavailable
         guard let appID = configuration.appID, !appID.isEmpty else {
-            let error = error(.missingSetUpParameter(key: .appIDKey))
+            let error = error(.initializationFailureInvalidCredentials, description: "Missing \(String.appIDKey)")
             log(.setUpFailed(error))
             return completion(error)
         }
         guard let apiKey = configuration.apiKey, !apiKey.isEmpty else {
-            let error = error(.missingSetUpParameter(key: .apiKey))
+            let error = error(.initializationFailureInvalidCredentials, description: "Missing \(String.apiKey)")
             log(.setUpFailed(error))
             return completion(error)
         }
@@ -68,7 +68,7 @@ final class MintegralAdapter: PartnerAdapter {
             log(.fetchBidderInfoSucceeded(request))
             completion(["buyeruid": info])
         } else {
-            let error = error(.fetchBidderInfoFailure(request), description: "Got nil buyerUID")
+            let error = error(.prebidFailureUnknown, description: "Got nil buyerUID")
             log(.fetchBidderInfoFailed(request, error: error))
             completion(nil)
         }
@@ -129,7 +129,7 @@ final class MintegralAdapter: PartnerAdapter {
         case .banner:
             return try MintegralAdapterBannerAd(adapter: self, request: request, delegate: delegate)
         @unknown default:
-            throw error(.adFormatNotSupported(request))
+            throw error(.loadFailureUnsupportedAdFormat)
         }
     }
 }
