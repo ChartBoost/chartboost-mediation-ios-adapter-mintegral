@@ -68,7 +68,7 @@ final class MintegralAdapter: PartnerAdapter {
             log(.fetchBidderInfoSucceeded(request))
             completion(["buyeruid": info])
         } else {
-            let error = error(.prebidFailurePartnerNotIntegrated, description: "Got nil buyerUID")
+            let error = error(.prebidFailureUnknown, description: "Got nil buyerUID")
             log(.fetchBidderInfoFailed(request, error: error))
             completion(nil)
         }
