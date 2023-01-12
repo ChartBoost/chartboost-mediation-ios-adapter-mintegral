@@ -64,7 +64,7 @@ extension MintegralAdapterBannerAd: MTGBannerAdViewDelegate {
     }
 
     func adViewLoadFailedWithError(_ partnerError: Error?, adView: MTGBannerAdView?) {
-        let error = error(.loadFailureUnknown, error: partnerError)
+        let error = partnerError ?? self.error(.loadFailureUnknown)
         log(.loadFailed(error))
         loadCompletion?(.failure(error)) ?? log(.loadResultIgnored)
         loadCompletion = nil
