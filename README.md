@@ -1,6 +1,6 @@
 # Chartboost Mediation Mintegral Adapter
 
-The Chartboost Mediation Mintegral adapter mediates the Mintegral SDK into the Chartboost Mediation SDK.
+The Chartboost Mediation Mintegral adapter mediates Mintegral via the Chartboost Mediation SDK.
 
 ## Minimum Requirements
 
