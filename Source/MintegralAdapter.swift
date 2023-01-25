@@ -8,11 +8,11 @@
 //  ChartboostHeliumAdapterMintegral
 //
 
+import ChartboostMediationSDK
 import Foundation
-import UIKit
-import HeliumSdk
 import MTGSDK
 import MTGSDKBidding
+import UIKit
 
 /// Helium Mintegral adapter.
 final class MintegralAdapter: PartnerAdapter {
