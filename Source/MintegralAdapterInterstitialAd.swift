@@ -8,8 +8,8 @@
 //  ChartboostHeliumAdapterMintegral
 //
 
+import ChartboostMediationSDK
 import Foundation
-import HeliumSdk
 import MTGSDK
 import MTGSDKNewInterstitial
 
