@@ -5,7 +5,7 @@
 
 //
 //  MintegralAdapterInterstitialAd.swift
-//  ChartboostHeliumAdapterMintegral
+//  ChartboostMediationAdapterMintegral
 //
 
 import ChartboostMediationSDK
@@ -13,7 +13,7 @@ import Foundation
 import MTGSDK
 import MTGSDKNewInterstitial
 
-/// The Helium Mintegral adapter interstitial ad.
+/// The Chartboost Mediation Mintegral adapter interstitial ad.
 final class MintegralAdapterInterstitialAd: MintegralAdapterAd, PartnerAd {
     
     /// The partner ad view to display inline. E.g. a banner view.

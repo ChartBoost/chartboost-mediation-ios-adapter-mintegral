@@ -5,7 +5,7 @@
 
 //
 //  MintegralAdapterBannerAd.swift
-//  ChartboostHeliumAdapterMintegral
+//  ChartboostMediationAdapterMintegral
 //
 
 import ChartboostMediationSDK
@@ -13,7 +13,7 @@ import Foundation
 import MTGSDK
 import MTGSDKBanner
 
-/// The Helium Mintegral adapter banner ad.
+/// The Chartboost Mediation Mintegral adapter banner ad.
 final class MintegralAdapterBannerAd: MintegralAdapterAd, PartnerAd {
     
     /// The partner ad view to display inline. E.g. a banner view.

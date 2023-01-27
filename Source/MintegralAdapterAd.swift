@@ -5,7 +5,7 @@
 
 //
 //  MintegralAdapterAd.swift
-//  ChartboostHeliumAdapterMintegral
+//  ChartboostMediationAdapterMintegral
 //
 
 import ChartboostMediationSDK
@@ -13,7 +13,7 @@ import Foundation
 import MTGSDK
 import UIKit
 
-/// Base class for Helium Mintegral adapter ads.
+/// Base class for Chartboost Mediation Mintegral adapter ads.
 class MintegralAdapterAd: NSObject {
     
     /// The partner adapter that created this ad.
@@ -30,10 +30,10 @@ class MintegralAdapterAd: NSObject {
     /// Mintegral's Unit ID needed to load an ad.
     let unitID: String
     
-    /// The completion handler to notify Helium of ad load completion result.
+    /// The completion handler to notify Chartboost Mediation of ad load completion result.
     var loadCompletion: ((Result<PartnerEventDetails, Error>) -> Void)?
     
-    /// The completion handler to notify Helium of ad load completion result.
+    /// The completion handler to notify Chartboost Mediation of ad load completion result.
     var showCompletion: ((Result<PartnerEventDetails, Error>) -> Void)?
     
     init(adapter: PartnerAdapter, request: PartnerAdLoadRequest, delegate: PartnerAdDelegate) throws {
