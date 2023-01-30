@@ -72,9 +72,9 @@ extension MintegralAdapterInterstitialBidAd: MTGNewInterstitialBidAdDelegate {
         loadCompletion = nil
     }
 
-    func newInterstitialBidAdLoadFail(_ partnerError: Error, adManager: MTGNewInterstitialBidAdManager) {
-        log(.loadFailed(partnerError))
-        loadCompletion?(.failure(partnerError)) ?? log(.loadResultIgnored)
+    func newInterstitialBidAdLoadFail(_ error: Error, adManager: MTGNewInterstitialBidAdManager) {
+        log(.loadFailed(error))
+        loadCompletion?(.failure(error)) ?? log(.loadResultIgnored)
         loadCompletion = nil
     }
 
@@ -84,9 +84,9 @@ extension MintegralAdapterInterstitialBidAd: MTGNewInterstitialBidAdDelegate {
         showCompletion = nil
     }
 
-    func newInterstitialBidAdShowFail(_ partnerError: Error, adManager: MTGNewInterstitialBidAdManager) {
-        log(.showFailed(partnerError))
-        showCompletion?(.failure(partnerError)) ?? log(.showResultIgnored)
+    func newInterstitialBidAdShowFail(_ error: Error, adManager: MTGNewInterstitialBidAdManager) {
+        log(.showFailed(error))
+        showCompletion?(.failure(error)) ?? log(.showResultIgnored)
         showCompletion = nil
     }
 

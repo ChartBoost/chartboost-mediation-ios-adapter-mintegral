@@ -81,9 +81,9 @@ extension MintegralAdapterRewardedAd: MTGRewardAdLoadDelegate {
         loadCompletion = nil
     }
 
-    func onVideoAdLoadFailed(_ placementId: String?, unitId: String?, error partnerError: Error) {
-        log(.loadFailed(partnerError))
-        loadCompletion?(.failure(partnerError)) ?? log(.loadResultIgnored)
+    func onVideoAdLoadFailed(_ placementId: String?, unitId: String?, error: Error) {
+        log(.loadFailed(error))
+        loadCompletion?(.failure(error)) ?? log(.loadResultIgnored)
         loadCompletion = nil
     }
 }
@@ -96,9 +96,9 @@ extension MintegralAdapterRewardedAd: MTGRewardAdShowDelegate {
         showCompletion = nil
     }
 
-    func onVideoAdShowFailed(_ placementId: String?, unitId: String?, withError partnerError: Error) {
-        log(.showFailed(partnerError))
-        showCompletion?(.failure(partnerError)) ?? log(.showResultIgnored)
+    func onVideoAdShowFailed(_ placementId: String?, unitId: String?, withError error: Error) {
+        log(.showFailed(error))
+        showCompletion?(.failure(error)) ?? log(.showResultIgnored)
         showCompletion = nil
     }
 
