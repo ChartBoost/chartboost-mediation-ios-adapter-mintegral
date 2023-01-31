@@ -150,8 +150,6 @@ final class MintegralAdapter: PartnerAdapter {
             return nil
         }
         switch code {
-        case .kMTGErrorCodeUnknownError:
-            return .loadFailureUnknown
         case .KMTGErrorCodeEmptyUnitId:
             return .loadFailureInvalidPartnerPlacement
         case .KMTGErrorCodeEmptyBidToken:
@@ -162,13 +160,13 @@ final class MintegralAdapter: PartnerAdapter {
             return .loadFailureNoConnectivity
         case .kMTGErrorCodeNoAdsAvailableToPlay:
             return .loadFailureNoFill
-        case .kMTGErrorCodeFailedToLoad:
-            return .loadFailureUnknown
         case .kMTGErrorCodeDailyLimit:
             return .loadFailureRateLimited
         case .kMTGErrorCodeLoadAdsTimeOut:
             return .loadFailureTimeout
-        case .kMTGErrorCodeRewardVideoFailedToLoadVideoData,
+        case .kMTGErrorCodeUnknownError,
+                .kMTGErrorCodeFailedToLoad,
+                .kMTGErrorCodeRewardVideoFailedToLoadVideoData,
                 .kMTGErrorCodeRewardVideoFailedToLoadPlayable,
                 .kMTGErrorCodeRewardVideoFailedToLoadTemplateImage,
                 .kMTGErrorCodeRewardVideoFailedToLoadPlayableURLFailed,
@@ -205,8 +203,6 @@ final class MintegralAdapter: PartnerAdapter {
             return nil
         }
         switch code {
-        case .kMTGErrorCodeUnknownError:
-            return .showFailureUnknown
         case .KMTGErrorCodeEmptyUnitId:
             return .showFailureInvalidPartnerPlacement
         case .kMTGErrorCodeNoAds:
@@ -215,17 +211,16 @@ final class MintegralAdapter: PartnerAdapter {
             return .showFailureNoConnectivity
         case .kMTGErrorCodeNoAdsAvailableToPlay:
             return .showFailureAdNotReady
-        case .kMTGErrorCodeDailyLimit:
-            return .showFailureUnknown
         case .kMTGErrorCodeLoadAdsTimeOut:
             return .showFailureTimeout
         case .kMTGErrorCodeFailedToPlay:
             return .showFailureVideoPlayerError
-        case .kMTGErrorCodeFailedToShow:
-            return .showFailureUnknown
         case .kMTGErrorCodeRewardVideoFailedToLoadVideoData:
             return .showFailureMediaBroken
-        case .kMTGErrorCodeRewardVideoFailedToLoadPlayable,
+        case .kMTGErrorCodeUnknownError,
+                .kMTGErrorCodeDailyLimit,
+                .kMTGErrorCodeFailedToShow,
+                .kMTGErrorCodeRewardVideoFailedToLoadPlayable,
                 .kMTGErrorCodeRewardVideoFailedToLoadTemplateImage,
                 .kMTGErrorCodeRewardVideoFailedToLoadPlayableURLFailed,
                 .kMTGErrorCodeRewardVideoFailedToLoadPlayableURLReadyTimeOut,
