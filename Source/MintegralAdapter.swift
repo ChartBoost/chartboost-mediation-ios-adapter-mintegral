@@ -137,6 +137,112 @@ final class MintegralAdapter: PartnerAdapter {
             throw error(.loadFailureUnsupportedAdFormat)
         }
     }
+    
+    /// Maps a partner load error to a Helium error code.
+    /// Helium SDK calls this method when a load completion is called with a partner error.
+    ///
+    /// A default implementation is provided that returns `nil`.
+    /// Only implement if the partner SDK provides its own list of error codes that can be mapped to Helium's.
+    /// If some case cannot be mapped return `nil` to let Helium choose a default error code.
+    func mapLoadError(_ error: Error) -> HeliumError.Code? {
+        guard (error as NSError).domain == kMTGErrorDomain,
+              let code = MTGErrorCode(rawValue: (error as NSError).code) else {
+            return nil
+        }
+        switch code {
+        case .KMTGErrorCodeEmptyUnitId:
+            return .loadFailureInvalidPartnerPlacement
+        case .KMTGErrorCodeEmptyBidToken:
+            return .loadFailureInvalidAdMarkup
+        case .kMTGErrorCodeNoAds:
+            return .loadFailureNoFill
+        case .kMTGErrorCodeConnectionLost:
+            return .loadFailureNoConnectivity
+        case .kMTGErrorCodeNoAdsAvailableToPlay:
+            return .loadFailureNoFill
+        case .kMTGErrorCodeDailyLimit:
+            return .loadFailureRateLimited
+        case .kMTGErrorCodeLoadAdsTimeOut:
+            return .loadFailureTimeout
+        case .kMTGErrorCodeUnknownError,
+                .kMTGErrorCodeFailedToLoad,
+                .kMTGErrorCodeRewardVideoFailedToLoadVideoData,
+                .kMTGErrorCodeRewardVideoFailedToLoadPlayable,
+                .kMTGErrorCodeRewardVideoFailedToLoadTemplateImage,
+                .kMTGErrorCodeRewardVideoFailedToLoadPlayableURLFailed,
+                .kMTGErrorCodeRewardVideoFailedToLoadPlayableURLReadyTimeOut,
+                .kMTGErrorCodeRewardVideoFailedToLoadPlayableURLReadyNO,
+                .kMTGErrorCodeRewardVideoFailedToLoadPlayableURLInvalid,
+                .kMTGErrorCodeURLisEmpty,
+                .kMTGErrorCodeFailedToPlay,
+                .kMTGErrorCodeFailedToShow,
+                .kMTGErrorCodeRewardVideoFailedToLoadMd5Invalid,
+                .kMTGErrorCodeRewardVideoFailedToSettingInvalid,
+                .kMTGErrorCodeFailedToShowCbp,
+                .kMTGErrorCodeMaterialLoadFailed,
+                .kMTGErrorCodeOfferExpired,
+                .kMTGErrorCodeImageURLisEmpty,
+                .kMTGErrorCodeNoSupportPopupWindow,
+                .kMTGErrorCodeFailedDiskIO,
+                .kMTGErrorCodeSocketIO:
+            return .loadFailureUnknown
+        @unknown default:
+            return nil
+        }
+    }
+    
+    /// Maps a partner show error to a Helium error code.
+    /// Helium SDK calls this method when a show completion is called with a partner error.
+    ///
+    /// A default implementation is provided that returns `nil`.
+    /// Only implement if the partner SDK provides its own list of error codes that can be mapped to Helium's.
+    /// If some case cannot be mapped return `nil` to let Helium choose a default error code.
+    func mapShowError(_ error: Error) -> HeliumError.Code? {
+        guard (error as NSError).domain == kMTGErrorDomain,
+              let code = MTGErrorCode(rawValue: (error as NSError).code) else {
+            return nil
+        }
+        switch code {
+        case .KMTGErrorCodeEmptyUnitId:
+            return .showFailureInvalidPartnerPlacement
+        case .kMTGErrorCodeNoAds:
+            return .showFailureNoFill
+        case .kMTGErrorCodeConnectionLost:
+            return .showFailureNoConnectivity
+        case .kMTGErrorCodeNoAdsAvailableToPlay:
+            return .showFailureAdNotReady
+        case .kMTGErrorCodeLoadAdsTimeOut:
+            return .showFailureTimeout
+        case .kMTGErrorCodeFailedToPlay:
+            return .showFailureVideoPlayerError
+        case .kMTGErrorCodeRewardVideoFailedToLoadVideoData:
+            return .showFailureMediaBroken
+        case .kMTGErrorCodeUnknownError,
+                .kMTGErrorCodeDailyLimit,
+                .kMTGErrorCodeFailedToShow,
+                .kMTGErrorCodeRewardVideoFailedToLoadPlayable,
+                .kMTGErrorCodeRewardVideoFailedToLoadTemplateImage,
+                .kMTGErrorCodeRewardVideoFailedToLoadPlayableURLFailed,
+                .kMTGErrorCodeRewardVideoFailedToLoadPlayableURLReadyTimeOut,
+                .kMTGErrorCodeRewardVideoFailedToLoadPlayableURLReadyNO,
+                .kMTGErrorCodeRewardVideoFailedToLoadPlayableURLInvalid,
+                .kMTGErrorCodeFailedToLoad,
+                .KMTGErrorCodeEmptyBidToken,
+                .kMTGErrorCodeURLisEmpty,
+                .kMTGErrorCodeRewardVideoFailedToLoadMd5Invalid,
+                .kMTGErrorCodeRewardVideoFailedToSettingInvalid,
+                .kMTGErrorCodeFailedToShowCbp,
+                .kMTGErrorCodeMaterialLoadFailed,
+                .kMTGErrorCodeOfferExpired,
+                .kMTGErrorCodeImageURLisEmpty,
+                .kMTGErrorCodeNoSupportPopupWindow,
+                .kMTGErrorCodeFailedDiskIO,
+                .kMTGErrorCodeSocketIO:
+            return .showFailureUnknown
+        @unknown default:
+            return nil
+        }
+    }
 }
 
 /// Convenience extension to access Mintegral credentials from the configuration.
