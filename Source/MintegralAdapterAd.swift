@@ -3,11 +3,6 @@
 // Use of this source code is governed by an MIT-style
 // license that can be found in the LICENSE file.
 
-//
-//  MintegralAdapterAd.swift
-//  ChartboostMediationAdapterMintegral
-//
-
 import ChartboostMediationSDK
 import Foundation
 import MTGSDK
