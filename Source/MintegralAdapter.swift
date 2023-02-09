@@ -56,11 +56,14 @@ final class MintegralAdapter: PartnerAdapter {
         }
         
         // Set up Mintegral SDK
-        MTGSDK.sharedInstance().setAppID(appID, apiKey: apiKey)
-        
-        // Succeed always
-        log(.setUpSucceded)
-        completion(nil)
+        // It's necessary to call `setAppID` on the main thread because it uses `UIApplication.canOpenURL(_:)` directly on the current thread.
+        DispatchQueue.main.async { [self] in
+            MTGSDK.sharedInstance().setAppID(appID, apiKey: apiKey)
+            
+            // Succeed always
+            log(.setUpSucceded)
+            completion(nil)
+        }
     }
     
     /// Fetches bidding tokens needed for the partner to participate in an auction.
