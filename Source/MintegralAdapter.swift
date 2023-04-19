@@ -133,7 +133,7 @@ final class MintegralAdapter: PartnerAdapter {
             return try MintegralAdapterRewardedAd(adapter: self, request: request, delegate: delegate)
         case .banner:
             return try MintegralAdapterBannerAd(adapter: self, request: request, delegate: delegate)
-        @unknown default:
+        default:
             throw error(.loadFailureUnsupportedAdFormat)
         }
     }
