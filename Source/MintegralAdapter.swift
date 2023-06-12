@@ -18,7 +18,7 @@ final class MintegralAdapter: PartnerAdapter {
     /// The version of the adapter.
     /// It should have either 5 or 6 digits separated by periods, where the first digit is Chartboost Mediation SDK's major version, the last digit is the adapter's build version, and intermediate digits are the partner SDK's version.
     /// Format: `<Chartboost Mediation major version>.<Partner major version>.<Partner minor version>.<Partner patch version>.<Partner build version>.<Adapter build version>` where `.<Partner build version>` is optional.
-    let adapterVersion = "4.7.3.0.0"
+    let adapterVersion = "4.7.3.0.1"
     
     /// The partner's unique identifier.
     let partnerIdentifier = "mintegral"
@@ -26,11 +26,16 @@ final class MintegralAdapter: PartnerAdapter {
     /// The human-friendly partner name.
     let partnerDisplayName = "Mintegral"
     
+    /// Ad storage managed by Chartboost Mediation SDK.
+    let storage: PartnerAdapterStorage
+    
     /// The designated initializer for the adapter.
     /// Chartboost Mediation SDK will use this constructor to create instances of conforming types.
     /// - parameter storage: An object that exposes storage managed by the Chartboost Mediation SDK to the adapter.
     /// It includes a list of created `PartnerAd` instances. You may ignore this parameter if you don't need it.
-    init(storage: PartnerAdapterStorage) { }
+    init(storage: PartnerAdapterStorage) {
+        self.storage = storage
+    }
     
     /// Does any setup needed before beginning to load ads.
     /// - parameter configuration: Configuration data for the adapter to set up.
@@ -122,6 +127,16 @@ final class MintegralAdapter: PartnerAdapter {
     /// - parameter request: Information about the ad load request.
     /// - parameter delegate: The delegate that will receive ad life-cycle notifications.
     func makeAd(request: PartnerAdLoadRequest, delegate: PartnerAdDelegate) throws -> PartnerAd {
+        // Prevent multiple loads for the same partner placement, since the partner SDK cannot handle them.
+        // Banner loads are allowed so a banner prefetch can happen during auto-refresh.
+        // ChartboostMediationSDK 4.x does not support loading more than 2 banners with the same placement, and the partner may or may not support it.
+        guard !storage.ads.contains(where: { $0.request.partnerPlacement == request.partnerPlacement })
+            || request.format == .banner
+        else {
+            log("Failed to load ad for already loading placement \(request.partnerPlacement)")
+            throw error(.loadFailureLoadInProgress)
+        }
+        
         switch request.format {
         case .interstitial:
             if request.adm == nil {
