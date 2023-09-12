@@ -20,10 +20,17 @@ final class MintegralAdapterBannerAd: MintegralAdapterAd, PartnerAd {
     /// - parameter completion: Closure to be performed once the ad has been loaded.
     func load(with viewController: UIViewController?, completion: @escaping (Result<PartnerEventDetails, Error>) -> Void) {
         log(.loadStarted)
-        
+
+        // Fail if we cannot fit a fixed size banner in the requested size.
+        guard let size = fixedBannerSize(for: request.size ?? IABStandardAdSize) else {
+            let error = error(.loadFailureInvalidBannerSize)
+            log(.loadFailed(error))
+            return completion(.failure(error))
+        }
+
         loadCompletion = completion
         
-        let banner = makeMintegralBanner()
+        let banner = makeMintegralBanner(size: size)
         inlineView = banner
         
         if let adm = request.adm {
@@ -33,9 +40,9 @@ final class MintegralAdapterBannerAd: MintegralAdapterAd, PartnerAd {
         }
     }
     
-    private func makeMintegralBanner() -> MTGBannerAdView {
+    private func makeMintegralBanner(size: CGSize) -> MTGBannerAdView {
         let banner = MTGBannerAdView(
-            bannerAdViewWithAdSize: request.size ?? IABStandardAdSize,
+            bannerAdViewWithAdSize: size,
             placementId: request.partnerPlacement,
             unitId: unitID,
             rootViewController: nil
@@ -59,7 +66,14 @@ extension MintegralAdapterBannerAd: MTGBannerAdViewDelegate {
     
     func adViewLoadSuccess(_ adView: MTGBannerAdView?) {
         log(.loadSucceeded)
-        loadCompletion?(.success([:])) ?? log(.loadResultIgnored)
+
+        var partnerDetails: [String: String] = [:]
+        if let loadedSize = fixedBannerSize(for: request.size ?? IABStandardAdSize) {
+            partnerDetails["bannerWidth"] = "\(loadedSize.width)"
+            partnerDetails["bannerHeight"] = "\(loadedSize.height)"
+            partnerDetails["bannerType"] = "0" // Fixed banner
+        }
+        loadCompletion?(.success(partnerDetails)) ?? log(.loadResultIgnored)
         loadCompletion = nil
     }
 
@@ -94,5 +108,22 @@ extension MintegralAdapterBannerAd: MTGBannerAdViewDelegate {
 
     func adViewClosed(_ adView: MTGBannerAdView?) {
         log(.delegateCallIgnored)
+    }
+}
+
+// MARK: - Helpers
+extension MintegralAdapterBannerAd {
+    private func fixedBannerSize(for requestedSize: CGSize) -> CGSize? {
+        let sizes = [IABLeaderboardAdSize, IABMediumAdSize, IABStandardAdSize]
+        // Find the largest size that can fit in the requested size.
+        for size in sizes {
+            // If height is 0, the pub has requested an ad of any height, so only the width matters.
+            if requestedSize.width >= size.width &&
+                (size.height == 0 || requestedSize.height >= size.height) {
+                return size
+            }
+        }
+        // The requested size cannot fit any fixed size banners.
+        return nil
     }
 }
