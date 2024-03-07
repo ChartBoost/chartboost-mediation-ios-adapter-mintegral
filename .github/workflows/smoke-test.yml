@@ -11,6 +11,5 @@ on:
 jobs:
   validate-podspec:
     runs-on: macos-13  # Last macOS version to support Xcode 14
-	allow-warnings: true
     steps:
       - uses: chartboost/chartboost-mediation-ios-actions/adapter-smoke-test@v1
