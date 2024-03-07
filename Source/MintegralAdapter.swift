@@ -1,4 +1,4 @@
-// Copyright 2022-2023 Chartboost, Inc.
+// Copyright 2022-2024 Chartboost, Inc.
 //
 // Use of this source code is governed by an MIT-style
 // license that can be found in the LICENSE file.
@@ -18,7 +18,7 @@ final class MintegralAdapter: PartnerAdapter {
     /// The version of the adapter.
     /// It should have either 5 or 6 digits separated by periods, where the first digit is Chartboost Mediation SDK's major version, the last digit is the adapter's build version, and intermediate digits are the partner SDK's version.
     /// Format: `<Chartboost Mediation major version>.<Partner major version>.<Partner minor version>.<Partner patch version>.<Partner build version>.<Adapter build version>` where `.<Partner build version>` is optional.
-    let adapterVersion = "4.7.3.0.2"
+    let adapterVersion = "4.7.5.0.0"
     
     /// The partner's unique identifier.
     let partnerIdentifier = "mintegral"
@@ -204,7 +204,10 @@ final class MintegralAdapter: PartnerAdapter {
                 .kMTGErrorCodeImageURLisEmpty,
                 .kMTGErrorCodeNoSupportPopupWindow,
                 .kMTGErrorCodeFailedDiskIO,
-                .kMTGErrorCodeSocketIO:
+                .kMTGErrorCodeSocketIO,
+                .kMTGErrorCodeAdsCountInvalid,
+                .kMTGErrorCodeSocketInvalidStatus,
+                .kMTGErrorCodeSocketInvalidContent:
             return .loadFailureUnknown
         @unknown default:
             return nil
@@ -257,7 +260,10 @@ final class MintegralAdapter: PartnerAdapter {
                 .kMTGErrorCodeImageURLisEmpty,
                 .kMTGErrorCodeNoSupportPopupWindow,
                 .kMTGErrorCodeFailedDiskIO,
-                .kMTGErrorCodeSocketIO:
+                .kMTGErrorCodeSocketIO,
+                .kMTGErrorCodeAdsCountInvalid,
+                .kMTGErrorCodeSocketInvalidStatus,
+                .kMTGErrorCodeSocketInvalidContent:
             return .showFailureUnknown
         @unknown default:
             return nil
