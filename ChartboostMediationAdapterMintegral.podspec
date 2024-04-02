@@ -1,6 +1,6 @@
 Pod::Spec.new do |spec|
   spec.name        = 'ChartboostMediationAdapterMintegral'
-  spec.version     = '4.7.3.0.2'
+  spec.version     = '4.7.6.0.0'
   spec.license     = { :type => 'MIT', :file => 'LICENSE.md' }
   spec.homepage    = 'https://github.com/ChartBoost/chartboost-mediation-ios-adapter-mintegral'
   spec.authors     = { 'Chartboost' => 'https://www.chartboost.com/' }
@@ -24,6 +24,6 @@ Pod::Spec.new do |spec|
   spec.dependency 'ChartboostMediationSDK', '~> 4.0'
 
   # Partner network SDK and version that this adapter is certified to work with.
-  spec.dependency 'MintegralAdSDK', '~> 7.3.0'
+  spec.dependency 'MintegralAdSDK', '~> 7.6.0'
   spec.static_framework = true
 end
