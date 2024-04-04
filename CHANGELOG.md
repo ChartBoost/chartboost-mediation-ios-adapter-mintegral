@@ -6,6 +6,9 @@ Adapters are compatible with any Chartboost Mediation SDK version within that ma
 ### 4.7.6.0.0
 - This version of the adapter has been certified with MintegralAdSDK 7.6.0.
 
+### 4.7.5.0.0
+- This version of the adapter has been certified with MintegralAdSDK 7.5.0.
+
 ### 4.7.3.0.2
 - Add support for Adaptive Banners.
 - This version of the adapters has been certified with MintegralAdSDK 7.3.0.
