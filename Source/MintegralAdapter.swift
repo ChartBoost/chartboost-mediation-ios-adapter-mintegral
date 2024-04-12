@@ -21,7 +21,7 @@ final class MintegralAdapter: PartnerAdapter {
     let adapterVersion = "4.7.5.0.0"
     
     /// The partner's unique identifier.
-    let partnerIdentifier = "mintegral"
+    let partnerID = "mintegral"
     
     /// The human-friendly partner name.
     let partnerDisplayName = "Mintegral"
@@ -40,19 +40,19 @@ final class MintegralAdapter: PartnerAdapter {
     /// Does any setup needed before beginning to load ads.
     /// - parameter configuration: Configuration data for the adapter to set up.
     /// - parameter completion: Closure to be performed by the adapter when it's done setting up. It should include an error indicating the cause for failure or `nil` if the operation finished successfully.
-    func setUp(with configuration: PartnerConfiguration, completion: @escaping (Error?) -> Void) {
+    func setUp(with configuration: PartnerConfiguration, completion: @escaping (Result<PartnerDetails, Error>) -> Void) {
         log(.setUpStarted)
         
         // Get credentials, fail early if they are unavailable
         guard let appID = configuration.appID, !appID.isEmpty else {
             let error = error(.initializationFailureInvalidCredentials, description: "Missing \(String.appIDKey)")
             log(.setUpFailed(error))
-            return completion(error)
+            return completion(.failure(error))
         }
         guard let apiKey = configuration.apiKey, !apiKey.isEmpty else {
             let error = error(.initializationFailureInvalidCredentials, description: "Missing \(String.apiKey)")
             log(.setUpFailed(error))
-            return completion(error)
+            return completion(.failure(error))
         }
         
         // Set up Mintegral SDK
@@ -62,24 +62,18 @@ final class MintegralAdapter: PartnerAdapter {
             
             // Succeed always
             log(.setUpSucceded)
-            completion(nil)
+            completion(.success([:]))
         }
     }
     
     /// Fetches bidding tokens needed for the partner to participate in an auction.
     /// - parameter request: Information about the ad load request.
     /// - parameter completion: Closure to be performed with the fetched info.
-    func fetchBidderInformation(request: PreBidRequest, completion: @escaping ([String : String]?) -> Void) {
+    func fetchBidderInformation(request: PartnerAdPreBidRequest, completion: @escaping (Result<[String : String], Error>) -> Void) {
         log(.fetchBidderInfoStarted(request))
-        
-        if let info = MTGBiddingSDK.buyerUID() {
-            log(.fetchBidderInfoSucceeded(request))
-            completion(["buyeruid": info])
-        } else {
-            let error = error(.prebidFailureUnknown, description: "Got nil buyerUID")
-            log(.fetchBidderInfoFailed(request, error: error))
-            completion(nil)
-        }
+        let info = MTGBiddingSDK.buyerUID()
+        log(.fetchBidderInfoSucceeded(request))
+        completion(.success(info.map { ["buyeruid": $0] } ?? [:]))
     }
     
     /// Indicates if GDPR applies or not and the user's GDPR consent status.
@@ -131,30 +125,26 @@ final class MintegralAdapter: PartnerAdapter {
         // Banner loads are allowed so a banner prefetch can happen during auto-refresh.
         // ChartboostMediationSDK 4.x does not support loading more than 2 banners with the same placement, and the partner may or may not support it.
         guard !storage.ads.contains(where: { $0.request.partnerPlacement == request.partnerPlacement })
-            || request.format == .banner
+            || request.format == PartnerAdFormats.banner
+            || request.format == PartnerAdFormats.adaptiveBanner
         else {
             log("Failed to load ad for already loading placement \(request.partnerPlacement)")
             throw error(.loadFailureLoadInProgress)
         }
         
         switch request.format {
-        case .interstitial:
+        case PartnerAdFormats.interstitial:
             if request.adm == nil {
                 return try MintegralAdapterInterstitialAd(adapter: self, request: request, delegate: delegate)
             } else {
                 return try MintegralAdapterInterstitialBidAd(adapter: self, request: request, delegate: delegate)
             }
-        case .rewarded:
+        case PartnerAdFormats.rewarded:
             return try MintegralAdapterRewardedAd(adapter: self, request: request, delegate: delegate)
-        case .banner:
+        case PartnerAdFormats.banner, PartnerAdFormats.adaptiveBanner:
             return try MintegralAdapterBannerAd(adapter: self, request: request, delegate: delegate)
         default:
-            // Not using the `.adaptiveBanner` case directly to maintain backward compatibility with Chartboost Mediation 4.0
-            if request.format.rawValue == "adaptive_banner" {
-                return try MintegralAdapterBannerAd(adapter: self, request: request, delegate: delegate)
-            } else {
-                throw error(.loadFailureUnsupportedAdFormat)
-            }
+            throw error(.loadFailureUnsupportedAdFormat)
         }
     }
     
