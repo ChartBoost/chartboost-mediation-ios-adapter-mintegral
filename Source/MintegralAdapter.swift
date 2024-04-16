@@ -126,7 +126,6 @@ final class MintegralAdapter: PartnerAdapter {
         // ChartboostMediationSDK 4.x does not support loading more than 2 banners with the same placement, and the partner may or may not support it.
         guard !storage.ads.contains(where: { $0.request.partnerPlacement == request.partnerPlacement })
             || request.format == PartnerAdFormats.banner
-            || request.format == PartnerAdFormats.adaptiveBanner
         else {
             log("Failed to load ad for already loading placement \(request.partnerPlacement)")
             throw error(.loadFailureLoadInProgress)
@@ -141,7 +140,7 @@ final class MintegralAdapter: PartnerAdapter {
             }
         case PartnerAdFormats.rewarded:
             return try MintegralAdapterRewardedAd(adapter: self, request: request, delegate: delegate)
-        case PartnerAdFormats.banner, PartnerAdFormats.adaptiveBanner:
+        case PartnerAdFormats.banner:
             return try MintegralAdapterBannerAd(adapter: self, request: request, delegate: delegate)
         default:
             throw error(.loadFailureUnsupportedAdFormat)
