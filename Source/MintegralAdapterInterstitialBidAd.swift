@@ -9,15 +9,7 @@ import MTGSDK
 import MTGSDKNewInterstitial
 
 /// The Chartboost Mediation Mintegral adapter interstitial bid ad.
-final class MintegralAdapterInterstitialBidAd: MintegralAdapterAd, PartnerAd {
-    
-    /// The partner ad view to display inline. E.g. a banner view.
-    /// Should be nil for full-screen ads.
-    var inlineView: UIView? { nil }
-
-    /// The loaded partner ad banner size.
-    /// Should be `nil` for full-screen ads.
-    var bannerSize: PartnerBannerSize? { nil }
+final class MintegralAdapterInterstitialBidAd: MintegralAdapterAd, PartnerFullscreenAd {
 
     /// The Mintegral SDK bid manager to load and show ads.
     private var bidManager: MTGNewInterstitialBidAdManager?

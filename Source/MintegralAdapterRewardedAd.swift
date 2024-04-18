@@ -9,15 +9,7 @@ import MTGSDK
 import MTGSDKReward
 
 /// The Chartboost Mediation Mintegral adapter rewarded ad.
-final class MintegralAdapterRewardedAd: MintegralAdapterAd, PartnerAd {
-    
-    /// The partner ad view to display inline. E.g. a banner view.
-    /// Should be nil for full-screen ads.
-    var inlineView: UIView? { nil }
-
-    /// The loaded partner ad banner size.
-    /// Should be `nil` for full-screen ads.
-    var bannerSize: PartnerBannerSize? { nil }
+final class MintegralAdapterRewardedAd: MintegralAdapterAd, PartnerFullscreenAd {
 
     /// Loads an ad.
     /// - parameter viewController: The view controller on which the ad will be presented on. Needed on load for some banners.
