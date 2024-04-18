@@ -26,7 +26,7 @@ final class MintegralAdapterBannerAd: MintegralAdapterAd, PartnerAd {
         log(.loadStarted)
 
         // Fail if we cannot fit a fixed size banner in the requested size.
-        guard let size = fixedBannerSize(for: request.size ?? IABStandardAdSize) else {
+        guard let size = fixedBannerSize(for: request.bannerSize) else {
             let error = error(.loadFailureInvalidBannerSize)
             log(.loadFailed(error))
             return completion(.failure(error))
@@ -111,13 +111,16 @@ extension MintegralAdapterBannerAd: MTGBannerAdViewDelegate {
 
 // MARK: - Helpers
 extension MintegralAdapterBannerAd {
-    private func fixedBannerSize(for requestedSize: CGSize) -> CGSize? {
+    private func fixedBannerSize(for requestedSize: BannerSize?) -> CGSize? {
+        guard let requestedSize else {
+            return IABStandardAdSize
+        }
         let sizes = [IABLeaderboardAdSize, IABMediumAdSize, IABStandardAdSize]
         // Find the largest size that can fit in the requested size.
         for size in sizes {
             // If height is 0, the pub has requested an ad of any height, so only the width matters.
-            if requestedSize.width >= size.width &&
-                (size.height == 0 || requestedSize.height >= size.height) {
+            if requestedSize.size.width >= size.width &&
+                (size.height == 0 || requestedSize.size.height >= size.height) {
                 return size
             }
         }
