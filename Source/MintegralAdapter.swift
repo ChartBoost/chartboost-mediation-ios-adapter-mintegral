@@ -113,20 +113,32 @@ final class MintegralAdapter: PartnerAdapter {
         log(.privacyUpdated(setting: "doNotTrackStatus", value: isChildDirected))
     }
     
+    /// Creates a new banner ad object in charge of communicating with a single partner SDK ad instance.
+    /// Chartboost Mediation SDK calls this method to create a new ad for each new load request. Ad instances are never reused.
+    /// Chartboost Mediation SDK takes care of storing and disposing of ad instances so you don't need to.
+    /// ``PartnerAd/invalidate()`` is called on ads before disposing of them in case partners need to perform any custom logic before the
+    /// object gets destroyed.
+    /// If, for some reason, a new ad cannot be provided, an error should be thrown.
+    /// Chartboost Mediation SDK will always call this method from the main thread.
+    /// - parameter request: Information about the ad load request.
+    /// - parameter delegate: The delegate that will receive ad life-cycle notifications.
+    func makeBannerAd(request: PartnerAdLoadRequest, delegate: PartnerAdDelegate) throws -> PartnerBannerAd {
+        // Multiple banner loads are allowed so a banner prefetch can happen during auto-refresh.
+        // ChartboostMediationSDK 5.x does not support loading more than 2 banners with the same placement, and the partner may or may not support it.
+        try MintegralAdapterBannerAd(adapter: self, request: request, delegate: delegate)
+    }
+
     /// Creates a new ad object in charge of communicating with a single partner SDK ad instance.
     /// Chartboost Mediation SDK calls this method to create a new ad for each new load request. Ad instances are never reused.
     /// Chartboost Mediation SDK takes care of storing and disposing of ad instances so you don't need to.
-    /// `invalidate()` is called on ads before disposing of them in case partners need to perform any custom logic before the object gets destroyed.
+    /// ``PartnerAd/invalidate()`` is called on ads before disposing of them in case partners need to perform any custom logic before the
+    /// object gets destroyed.
     /// If, for some reason, a new ad cannot be provided, an error should be thrown.
     /// - parameter request: Information about the ad load request.
     /// - parameter delegate: The delegate that will receive ad life-cycle notifications.
-    func makeAd(request: PartnerAdLoadRequest, delegate: PartnerAdDelegate) throws -> PartnerAd {
+    func makeFullscreenAd(request: PartnerAdLoadRequest, delegate: PartnerAdDelegate) throws -> PartnerFullscreenAd {
         // Prevent multiple loads for the same partner placement, since the partner SDK cannot handle them.
-        // Banner loads are allowed so a banner prefetch can happen during auto-refresh.
-        // ChartboostMediationSDK 4.x does not support loading more than 2 banners with the same placement, and the partner may or may not support it.
-        guard !storage.ads.contains(where: { $0.request.partnerPlacement == request.partnerPlacement })
-            || request.format == PartnerAdFormats.banner
-        else {
+        guard !storage.ads.contains(where: { $0.request.partnerPlacement == request.partnerPlacement }) else {
             log("Failed to load ad for already loading placement \(request.partnerPlacement)")
             throw error(.loadFailureLoadInProgress)
         }
@@ -140,8 +152,6 @@ final class MintegralAdapter: PartnerAdapter {
             }
         case PartnerAdFormats.rewarded:
             return try MintegralAdapterRewardedAd(adapter: self, request: request, delegate: delegate)
-        case PartnerAdFormats.banner:
-            return try MintegralAdapterBannerAd(adapter: self, request: request, delegate: delegate)
         default:
             throw error(.loadFailureUnsupportedAdFormat)
         }
