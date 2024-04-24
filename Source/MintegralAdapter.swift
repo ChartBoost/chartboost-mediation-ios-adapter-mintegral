@@ -54,7 +54,11 @@ final class MintegralAdapter: PartnerAdapter {
             log(.setUpFailed(error))
             return completion(.failure(error))
         }
-        
+
+        // Apply initial consents
+        setConsents(configuration.consents, modifiedKeys: Set(configuration.consents.keys))
+        setIsUserUnderage(configuration.isUserUnderage)
+
         // Set up Mintegral SDK
         // It's necessary to call `setAppID` on the main thread because it uses `UIApplication.canOpenURL(_:)` directly on the current thread.
         DispatchQueue.main.async { [self] in
