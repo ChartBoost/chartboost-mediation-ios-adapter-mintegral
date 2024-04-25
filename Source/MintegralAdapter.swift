@@ -54,7 +54,11 @@ final class MintegralAdapter: PartnerAdapter {
             log(.setUpFailed(error))
             return completion(.failure(error))
         }
-        
+
+        // Apply initial consents
+        setConsents(configuration.consents, modifiedKeys: Set(configuration.consents.keys))
+        setIsUserUnderage(configuration.isUserUnderage)
+
         // Set up Mintegral SDK
         // It's necessary to call `setAppID` on the main thread because it uses `UIApplication.canOpenURL(_:)` directly on the current thread.
         DispatchQueue.main.async { [self] in
@@ -76,43 +80,48 @@ final class MintegralAdapter: PartnerAdapter {
         completion(.success(info.map { ["buyeruid": $0] } ?? [:]))
     }
     
-    /// Indicates if GDPR applies or not and the user's GDPR consent status.
-    /// - parameter applies: `true` if GDPR applies, `false` if not, `nil` if the publisher has not provided this information.
-    /// - parameter status: One of the `GDPRConsentStatus` values depending on the user's preference.
-    func setGDPR(applies: Bool?, status: GDPRConsentStatus) {
+    /// Indicates that the user consent has changed.
+    /// - parameter consents: The new consents value, including both modified and unmodified consents.
+    /// - parameter modifiedKeys: A set containing all the keys that changed.
+    func setConsents(_ consents: [ConsentKey: ConsentValue], modifiedKeys: Set<ConsentKey>) {
         // See http://cdn-adn.rayjump.com/cdn-adn/v2/markdown_v2/index.html?file=sdk-m_sdk-ios&lang=en#settingsforuserpersonaldataprotection
-        if applies == true {
-            let constentStatus = status == .granted
-            MTGSDK.sharedInstance().consentStatus = constentStatus
-            log(.privacyUpdated(setting: "consentStatus", value: constentStatus))
+        // GDPR
+        if modifiedKeys.contains(partnerID) || modifiedKeys.contains(ConsentKeys.gdprConsentGiven) {
+            let consent = consents[partnerID] ?? consents[ConsentKeys.gdprConsentGiven]
+            switch consent {
+            case ConsentValues.granted:
+                MTGSDK.sharedInstance().consentStatus = true
+                log(.privacyUpdated(setting: "consentStatus", value: true))
+            case ConsentValues.denied:
+                MTGSDK.sharedInstance().consentStatus = false
+                log(.privacyUpdated(setting: "consentStatus", value: false))
+            default:
+                break   // do nothing
+            }
+        }
+
+        // CCPA
+        if modifiedKeys.contains(ConsentKeys.ccpaOptIn) {
+            // we don't set doNotTrackStatus to false to avoid overwritting a value possibly set by setIsUserUnderage()
+            if consents[ConsentKeys.ccpaOptIn] == ConsentValues.denied {
+                MTGSDK.sharedInstance().doNotTrackStatus = true
+                log(.privacyUpdated(setting: "doNotTrackStatus", value: true))
+            }
         }
     }
-    
-    /// Indicates the CCPA status both as a boolean and as an IAB US privacy string.
-    /// - parameter hasGivenConsent: A boolean indicating if the user has given consent.
-    /// - parameter privacyString: An IAB-compliant string indicating the CCPA status.
-    func setCCPA(hasGivenConsent: Bool, privacyString: String) {
+
+    /// Indicates that the user is underage signal has changed.
+    /// - parameter isUserUnderage: `true` if the user is underage as determined by the publisher, `false` otherwise.
+    func setIsUserUnderage(_ isUserUnderage: Bool) {
         // See http://cdn-adn.rayjump.com/cdn-adn/v2/markdown_v2/index.html?file=sdk-m_sdk-ios&lang=en#settingsforuserpersonaldataprotection
-        let doNotTrackStatus = !hasGivenConsent
-        guard doNotTrackStatus else {
-            return  // we don't set doNotTrackStatus to false to avoid overwritting a value possibly set by setCOPPA()
-        }
-        MTGSDK.sharedInstance().doNotTrackStatus = doNotTrackStatus
-        log(.privacyUpdated(setting: "doNotTrackStatus", value: doNotTrackStatus))
-    }
-    
-    /// Indicates if the user is subject to COPPA or not.
-    /// - parameter isChildDirected: `true` if the user is subject to COPPA, `false` otherwise.
-    func setCOPPA(isChildDirected: Bool) {
-        // See http://cdn-adn.rayjump.com/cdn-adn/v2/markdown_v2/index.html?file=sdk-m_sdk-ios&lang=en#settingsforuserpersonaldataprotection
-        guard isChildDirected else {
-            return  // we don't set doNotTrackStatus to false to avoid overwritting a value possibly set by setCCPA()
+        guard isUserUnderage else {
+            return  // we don't set doNotTrackStatus to false to avoid overwritting a value possibly set by setConsents()
         }
         // Using this method, same as CCPA, per Mintegral's instructions
-        MTGSDK.sharedInstance().doNotTrackStatus = isChildDirected
-        log(.privacyUpdated(setting: "doNotTrackStatus", value: isChildDirected))
+        MTGSDK.sharedInstance().doNotTrackStatus = true
+        log(.privacyUpdated(setting: "doNotTrackStatus", value: true))
     }
-    
+
     /// Creates a new banner ad object in charge of communicating with a single partner SDK ad instance.
     /// Chartboost Mediation SDK calls this method to create a new ad for each new load request. Ad instances are never reused.
     /// Chartboost Mediation SDK takes care of storing and disposing of ad instances so you don't need to.
