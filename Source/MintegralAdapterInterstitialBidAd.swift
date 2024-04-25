@@ -30,6 +30,7 @@ final class MintegralAdapterInterstitialBidAd: MintegralAdapterAd, PartnerFullsc
         loadCompletion = completion
         
         let bidManager = MTGNewInterstitialBidAdManager(placementId: request.partnerPlacement, unitId: unitID, delegate: self)
+        bidManager.playVideoMute = MintegralAdapterConfiguration.isMuted
         self.bidManager = bidManager
         bidManager.loadAd(withBidToken: adm)
     }

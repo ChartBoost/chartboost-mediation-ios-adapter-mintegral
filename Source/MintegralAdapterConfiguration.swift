@@ -5,6 +5,7 @@
 
 import Foundation
 import MTGSDK
+import os.log
 
 /// A list of externally configurable properties pertaining to the partner SDK that can be retrieved and set by publishers.
 @objc public class MintegralAdapterConfiguration: NSObject {
@@ -24,4 +25,14 @@ import MTGSDK
 
     /// The human-friendly partner name.
     @objc static let partnerDisplayName = "Mintegral"
+
+    /// Flag that can optionally be set to disable audio for the Mintegral SDK.
+    /// Defaults to `false`.
+    @objc public static var isMuted: Bool = false {
+        didSet {
+            os_log(.debug, log: log, "Mintegral SDK mute audio set to %{public}s", "\(isMuted)")
+        }
+    }
+
+    private static let log = OSLog(subsystem: "com.chartboost.mediation.adapter.mintegral", category: "Configuration")
 }
