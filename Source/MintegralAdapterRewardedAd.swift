@@ -20,6 +20,7 @@ final class MintegralAdapterRewardedAd: MintegralAdapterAd, PartnerFullscreenAd 
         loadCompletion = completion
         
         if let adm = request.adm {
+            MTGBidRewardAdManager.sharedInstance().playVideoMute = MintegralAdapterConfiguration.isMuted
             MTGBidRewardAdManager.sharedInstance().loadVideo(
                 withBidToken: adm,
                 placementId: request.partnerPlacement,
@@ -27,6 +28,7 @@ final class MintegralAdapterRewardedAd: MintegralAdapterAd, PartnerFullscreenAd 
                 delegate: self
             )
         } else {
+            MTGRewardAdManager.sharedInstance().playVideoMute = MintegralAdapterConfiguration.isMuted
             MTGRewardAdManager.sharedInstance().loadVideo(
                 withPlacementId: request.partnerPlacement,
                 unitId: unitID,

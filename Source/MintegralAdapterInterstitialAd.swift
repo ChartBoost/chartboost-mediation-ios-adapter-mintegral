@@ -23,6 +23,7 @@ final class MintegralAdapterInterstitialAd: MintegralAdapterAd, PartnerFullscree
         loadCompletion = completion
         
         let adManager = MTGNewInterstitialAdManager(placementId: request.partnerPlacement, unitId: unitID, delegate: self)
+        adManager.playVideoMute = MintegralAdapterConfiguration.isMuted
         self.adManager = adManager
         adManager.loadAd()
     }
