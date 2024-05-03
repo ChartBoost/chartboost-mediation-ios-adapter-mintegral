@@ -3,12 +3,12 @@
 // Use of this source code is governed by an MIT-style
 // license that can be found in the LICENSE file.
 
+import ChartboostMediationSDK
 import Foundation
 import MTGSDK
-import os.log
 
 /// A list of externally configurable properties pertaining to the partner SDK that can be retrieved and set by publishers.
-@objc public class MintegralAdapterConfiguration: NSObject {
+@objc public class MintegralAdapterConfiguration: NSObject, PartnerAdapterConfiguration {
     
     /// The version of the partner SDK.
     @objc public static var partnerSDKVersion: String {
@@ -30,9 +30,7 @@ import os.log
     /// Defaults to `false`.
     @objc public static var isMuted: Bool = false {
         didSet {
-            os_log(.debug, log: log, "Mintegral SDK mute audio set to %{public}s", "\(isMuted)")
+            log("Mute audio set to \(isMuted)")
         }
     }
-
-    private static let log = OSLog(subsystem: "com.chartboost.mediation.adapter.mintegral", category: "Configuration")
 }
