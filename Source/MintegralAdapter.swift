@@ -201,10 +201,7 @@ final class MintegralAdapter: PartnerAdapter {
                 .kMTGErrorCodeImageURLisEmpty,
                 .kMTGErrorCodeNoSupportPopupWindow,
                 .kMTGErrorCodeFailedDiskIO,
-                .kMTGErrorCodeSocketIO,
-                .kMTGErrorCodeAdsCountInvalid,
-                .kMTGErrorCodeSocketInvalidStatus,
-                .kMTGErrorCodeSocketInvalidContent:
+                .kMTGErrorCodeSocketIO:
             return .loadFailureUnknown
         @unknown default:
             return nil
@@ -257,10 +254,7 @@ final class MintegralAdapter: PartnerAdapter {
                 .kMTGErrorCodeImageURLisEmpty,
                 .kMTGErrorCodeNoSupportPopupWindow,
                 .kMTGErrorCodeFailedDiskIO,
-                .kMTGErrorCodeSocketIO,
-                .kMTGErrorCodeAdsCountInvalid,
-                .kMTGErrorCodeSocketInvalidStatus,
-                .kMTGErrorCodeSocketInvalidContent:
+                .kMTGErrorCodeSocketIO:
             return .showFailureUnknown
         @unknown default:
             return nil
