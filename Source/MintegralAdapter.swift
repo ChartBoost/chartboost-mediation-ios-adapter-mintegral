@@ -11,24 +11,13 @@ import UIKit
 
 /// Chartboost Mediation Mintegral adapter.
 final class MintegralAdapter: PartnerAdapter {
-    
-    /// The version of the partner SDK.
-    let partnerSDKVersion: String = MTGSDK.sdkVersion()
-    
-    /// The version of the adapter.
-    /// It should have either 5 or 6 digits separated by periods, where the first digit is Chartboost Mediation SDK's major version, the last digit is the adapter's build version, and intermediate digits are the partner SDK's version.
-    /// Format: `<Chartboost Mediation major version>.<Partner major version>.<Partner minor version>.<Partner patch version>.<Partner build version>.<Adapter build version>` where `.<Partner build version>` is optional.
-    let adapterVersion = "4.7.6.0.0"
+    /// The adapter configuration type that contains adapter and partner info.
+    /// It may also be used to expose custom partner SDK options to the publisher.
+    var configuration: PartnerAdapterConfiguration.Type { MintegralAdapterConfiguration.self }
 
-    /// The partner's unique identifier.
-    let partnerIdentifier = "mintegral"
-    
-    /// The human-friendly partner name.
-    let partnerDisplayName = "Mintegral"
-    
     /// Ad storage managed by Chartboost Mediation SDK.
     let storage: PartnerAdapterStorage
-    
+
     /// The designated initializer for the adapter.
     /// Chartboost Mediation SDK will use this constructor to create instances of conforming types.
     /// - parameter storage: An object that exposes storage managed by the Chartboost Mediation SDK to the adapter.
@@ -36,128 +25,141 @@ final class MintegralAdapter: PartnerAdapter {
     init(storage: PartnerAdapterStorage) {
         self.storage = storage
     }
-    
+
     /// Does any setup needed before beginning to load ads.
     /// - parameter configuration: Configuration data for the adapter to set up.
-    /// - parameter completion: Closure to be performed by the adapter when it's done setting up. It should include an error indicating the cause for failure or `nil` if the operation finished successfully.
-    func setUp(with configuration: PartnerConfiguration, completion: @escaping (Error?) -> Void) {
+    /// - parameter completion: Closure to be performed by the adapter when it's done setting up. It should include an error indicating
+    /// the cause for failure or `nil` if the operation finished successfully.
+    func setUp(with configuration: PartnerConfiguration, completion: @escaping (Result<PartnerDetails, Error>) -> Void) {
         log(.setUpStarted)
-        
+
         // Get credentials, fail early if they are unavailable
         guard let appID = configuration.appID, !appID.isEmpty else {
             let error = error(.initializationFailureInvalidCredentials, description: "Missing \(String.appIDKey)")
             log(.setUpFailed(error))
-            return completion(error)
+            completion(.failure(error))
+            return
         }
         guard let apiKey = configuration.apiKey, !apiKey.isEmpty else {
             let error = error(.initializationFailureInvalidCredentials, description: "Missing \(String.apiKey)")
             log(.setUpFailed(error))
-            return completion(error)
+            completion(.failure(error))
+            return
         }
-        
+
+        // Apply initial consents
+        setConsents(configuration.consents, modifiedKeys: Set(configuration.consents.keys))
+        setIsUserUnderage(configuration.isUserUnderage)
+
         // Set up Mintegral SDK
-        // It's necessary to call `setAppID` on the main thread because it uses `UIApplication.canOpenURL(_:)` directly on the current thread.
+        // It's necessary to call `setAppID` on the main thread because it uses `UIApplication.canOpenURL(_:)` directly on the current 
+        // thread.
         DispatchQueue.main.async { [self] in
             MTGSDK.sharedInstance().setAppID(appID, apiKey: apiKey)
-            
+
             // Succeed always
             log(.setUpSucceded)
-            completion(nil)
+            completion(.success([:]))
         }
     }
-    
+
     /// Fetches bidding tokens needed for the partner to participate in an auction.
     /// - parameter request: Information about the ad load request.
     /// - parameter completion: Closure to be performed with the fetched info.
-    func fetchBidderInformation(request: PreBidRequest, completion: @escaping ([String : String]?) -> Void) {
+    func fetchBidderInformation(request: PartnerAdPreBidRequest, completion: @escaping (Result<[String: String], Error>) -> Void) {
         log(.fetchBidderInfoStarted(request))
-        
-        if let info = MTGBiddingSDK.buyerUID() {
-            log(.fetchBidderInfoSucceeded(request))
-            completion(["buyeruid": info])
-        } else {
-            let error = error(.prebidFailureUnknown, description: "Got nil buyerUID")
-            log(.fetchBidderInfoFailed(request, error: error))
-            completion(nil)
+        let info = MTGBiddingSDK.buyerUID()
+        log(.fetchBidderInfoSucceeded(request))
+        completion(.success(info.map { ["buyeruid": $0] } ?? [:]))
+    }
+
+    /// Indicates that the user consent has changed.
+    /// - parameter consents: The new consents value, including both modified and unmodified consents.
+    /// - parameter modifiedKeys: A set containing all the keys that changed.
+    func setConsents(_ consents: [ConsentKey: ConsentValue], modifiedKeys: Set<ConsentKey>) {
+        // See http://cdn-adn.rayjump.com/cdn-adn/v2/markdown_v2/index.html?file=sdk-m_sdk-ios&lang=en#settingsforuserpersonaldataprotection
+        // GDPR
+        if modifiedKeys.contains(configuration.partnerID) || modifiedKeys.contains(ConsentKeys.gdprConsentGiven) {
+            let consent = consents[configuration.partnerID] ?? consents[ConsentKeys.gdprConsentGiven]
+            switch consent {
+            case ConsentValues.granted:
+                MTGSDK.sharedInstance().consentStatus = true
+                log(.privacyUpdated(setting: "consentStatus", value: true))
+            case ConsentValues.denied:
+                MTGSDK.sharedInstance().consentStatus = false
+                log(.privacyUpdated(setting: "consentStatus", value: false))
+            default:
+                break   // do nothing
+            }
+        }
+
+        // CCPA
+        if modifiedKeys.contains(ConsentKeys.ccpaOptIn) {
+            // we don't set doNotTrackStatus to false to avoid overwritting a value possibly set by setIsUserUnderage()
+            if consents[ConsentKeys.ccpaOptIn] == ConsentValues.denied {
+                MTGSDK.sharedInstance().doNotTrackStatus = true
+                log(.privacyUpdated(setting: "doNotTrackStatus", value: true))
+            }
         }
     }
-    
-    /// Indicates if GDPR applies or not and the user's GDPR consent status.
-    /// - parameter applies: `true` if GDPR applies, `false` if not, `nil` if the publisher has not provided this information.
-    /// - parameter status: One of the `GDPRConsentStatus` values depending on the user's preference.
-    func setGDPR(applies: Bool?, status: GDPRConsentStatus) {
+
+    /// Indicates that the user is underage signal has changed.
+    /// - parameter isUserUnderage: `true` if the user is underage as determined by the publisher, `false` otherwise.
+    func setIsUserUnderage(_ isUserUnderage: Bool) {
         // See http://cdn-adn.rayjump.com/cdn-adn/v2/markdown_v2/index.html?file=sdk-m_sdk-ios&lang=en#settingsforuserpersonaldataprotection
-        if applies == true {
-            let constentStatus = status == .granted
-            MTGSDK.sharedInstance().consentStatus = constentStatus
-            log(.privacyUpdated(setting: "consentStatus", value: constentStatus))
-        }
-    }
-    
-    /// Indicates the CCPA status both as a boolean and as an IAB US privacy string.
-    /// - parameter hasGivenConsent: A boolean indicating if the user has given consent.
-    /// - parameter privacyString: An IAB-compliant string indicating the CCPA status.
-    func setCCPA(hasGivenConsent: Bool, privacyString: String) {
-        // See http://cdn-adn.rayjump.com/cdn-adn/v2/markdown_v2/index.html?file=sdk-m_sdk-ios&lang=en#settingsforuserpersonaldataprotection
-        let doNotTrackStatus = !hasGivenConsent
-        guard doNotTrackStatus else {
-            return  // we don't set doNotTrackStatus to false to avoid overwritting a value possibly set by setCOPPA()
-        }
-        MTGSDK.sharedInstance().doNotTrackStatus = doNotTrackStatus
-        log(.privacyUpdated(setting: "doNotTrackStatus", value: doNotTrackStatus))
-    }
-    
-    /// Indicates if the user is subject to COPPA or not.
-    /// - parameter isChildDirected: `true` if the user is subject to COPPA, `false` otherwise.
-    func setCOPPA(isChildDirected: Bool) {
-        // See http://cdn-adn.rayjump.com/cdn-adn/v2/markdown_v2/index.html?file=sdk-m_sdk-ios&lang=en#settingsforuserpersonaldataprotection
-        guard isChildDirected else {
-            return  // we don't set doNotTrackStatus to false to avoid overwritting a value possibly set by setCCPA()
+        guard isUserUnderage else {
+            return  // we don't set doNotTrackStatus to false to avoid overwritting a value possibly set by setConsents()
         }
         // Using this method, same as CCPA, per Mintegral's instructions
-        MTGSDK.sharedInstance().doNotTrackStatus = isChildDirected
-        log(.privacyUpdated(setting: "doNotTrackStatus", value: isChildDirected))
+        MTGSDK.sharedInstance().doNotTrackStatus = true
+        log(.privacyUpdated(setting: "doNotTrackStatus", value: true))
     }
-    
+
+    /// Creates a new banner ad object in charge of communicating with a single partner SDK ad instance.
+    /// Chartboost Mediation SDK calls this method to create a new ad for each new load request. Ad instances are never reused.
+    /// Chartboost Mediation SDK takes care of storing and disposing of ad instances so you don't need to.
+    /// ``PartnerAd/invalidate()`` is called on ads before disposing of them in case partners need to perform any custom logic before the
+    /// object gets destroyed.
+    /// If, for some reason, a new ad cannot be provided, an error should be thrown.
+    /// Chartboost Mediation SDK will always call this method from the main thread.
+    /// - parameter request: Information about the ad load request.
+    /// - parameter delegate: The delegate that will receive ad life-cycle notifications.
+    func makeBannerAd(request: PartnerAdLoadRequest, delegate: PartnerAdDelegate) throws -> PartnerBannerAd {
+        // Multiple banner loads are allowed so a banner prefetch can happen during auto-refresh.
+        // ChartboostMediationSDK 5.x does not support loading more than 2 banners with the same placement, and the partner may or may not
+        // support it.
+        try MintegralAdapterBannerAd(adapter: self, request: request, delegate: delegate)
+    }
+
     /// Creates a new ad object in charge of communicating with a single partner SDK ad instance.
     /// Chartboost Mediation SDK calls this method to create a new ad for each new load request. Ad instances are never reused.
     /// Chartboost Mediation SDK takes care of storing and disposing of ad instances so you don't need to.
-    /// `invalidate()` is called on ads before disposing of them in case partners need to perform any custom logic before the object gets destroyed.
+    /// ``PartnerAd/invalidate()`` is called on ads before disposing of them in case partners need to perform any custom logic before the
+    /// object gets destroyed.
     /// If, for some reason, a new ad cannot be provided, an error should be thrown.
     /// - parameter request: Information about the ad load request.
     /// - parameter delegate: The delegate that will receive ad life-cycle notifications.
-    func makeAd(request: PartnerAdLoadRequest, delegate: PartnerAdDelegate) throws -> PartnerAd {
+    func makeFullscreenAd(request: PartnerAdLoadRequest, delegate: PartnerAdDelegate) throws -> PartnerFullscreenAd {
         // Prevent multiple loads for the same partner placement, since the partner SDK cannot handle them.
-        // Banner loads are allowed so a banner prefetch can happen during auto-refresh.
-        // ChartboostMediationSDK 4.x does not support loading more than 2 banners with the same placement, and the partner may or may not support it.
-        guard !storage.ads.contains(where: { $0.request.partnerPlacement == request.partnerPlacement })
-            || request.format == .banner
-        else {
-            log("Failed to load ad for already loading placement \(request.partnerPlacement)")
+        guard !storage.ads.contains(where: { $0.request.partnerPlacement == request.partnerPlacement }) else {
+            log(.skippedLoadForAlreadyLoadingPlacement(request))
             throw error(.loadFailureLoadInProgress)
         }
-        
+
         switch request.format {
-        case .interstitial:
+        case PartnerAdFormats.interstitial:
             if request.adm == nil {
                 return try MintegralAdapterInterstitialAd(adapter: self, request: request, delegate: delegate)
             } else {
                 return try MintegralAdapterInterstitialBidAd(adapter: self, request: request, delegate: delegate)
             }
-        case .rewarded:
+        case PartnerAdFormats.rewarded:
             return try MintegralAdapterRewardedAd(adapter: self, request: request, delegate: delegate)
-        case .banner:
-            return try MintegralAdapterBannerAd(adapter: self, request: request, delegate: delegate)
         default:
-            // Not using the `.adaptiveBanner` case directly to maintain backward compatibility with Chartboost Mediation 4.0
-            if request.format.rawValue == "adaptive_banner" {
-                return try MintegralAdapterBannerAd(adapter: self, request: request, delegate: delegate)
-            } else {
-                throw error(.loadFailureUnsupportedAdFormat)
-            }
+            throw error(.loadFailureUnsupportedAdFormat)
         }
     }
-    
+
     /// Maps a partner load error to a Chartboost Mediation error code.
     /// Chartboost Mediation SDK calls this method when a load completion is called with a partner error.
     ///
@@ -204,13 +206,16 @@ final class MintegralAdapter: PartnerAdapter {
                 .kMTGErrorCodeImageURLisEmpty,
                 .kMTGErrorCodeNoSupportPopupWindow,
                 .kMTGErrorCodeFailedDiskIO,
-                .kMTGErrorCodeSocketIO:
+                .kMTGErrorCodeSocketIO,
+                .kMTGErrorCodeAdsCountInvalid,
+                .kMTGErrorCodeSocketInvalidStatus,
+                .kMTGErrorCodeSocketInvalidContent:
             return .loadFailureUnknown
         @unknown default:
             return nil
         }
     }
-    
+
     /// Maps a partner show error to a Chartboost Mediation error code.
     /// Chartboost Mediation SDK calls this method when a show completion is called with a partner error.
     ///
@@ -257,7 +262,10 @@ final class MintegralAdapter: PartnerAdapter {
                 .kMTGErrorCodeImageURLisEmpty,
                 .kMTGErrorCodeNoSupportPopupWindow,
                 .kMTGErrorCodeFailedDiskIO,
-                .kMTGErrorCodeSocketIO:
+                .kMTGErrorCodeSocketIO,
+                .kMTGErrorCodeAdsCountInvalid,
+                .kMTGErrorCodeSocketInvalidStatus,
+                .kMTGErrorCodeSocketInvalidContent:
             return .showFailureUnknown
         @unknown default:
             return nil
@@ -266,14 +274,14 @@ final class MintegralAdapter: PartnerAdapter {
 }
 
 /// Convenience extension to access Mintegral credentials from the configuration.
-private extension PartnerConfiguration {
-    var appID: String? { credentials[.appIDKey] as? String }
-    var apiKey: String? { credentials[.apiKey] as? String }
+extension PartnerConfiguration {
+    fileprivate var appID: String? { credentials[.appIDKey] as? String }
+    fileprivate var apiKey: String? { credentials[.apiKey] as? String }
 }
 
-private extension String {
+extension String {
     /// Mintegral app ID credentials key
-    static let appIDKey = "mintegral_app_id"
+    fileprivate static let appIDKey = "mintegral_app_id"
     /// Mintegral api key credentials key
-    static let apiKey = "app_key"
+    fileprivate static let apiKey = "app_key"
 }
