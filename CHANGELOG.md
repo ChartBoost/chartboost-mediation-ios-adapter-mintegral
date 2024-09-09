@@ -3,7 +3,12 @@
 Note the first digit of every adapter version corresponds to the major version of the Chartboost Mediation SDK compatible with that adapter. 
 Adapters are compatible with any Chartboost Mediation SDK version within that major version.
 
+All official releases can be found on this repository's [releases page](https://github.com/ChartBoost/chartboost-mediation-ios-adapter-mintegral/releases).
+
 ### 5.7.7.0.0
+- This version of the adapter has been certified with MintegralAdSDK 7.7.0.
+
+### 4.7.7.0.0
 - This version of the adapter has been certified with MintegralAdSDK 7.7.0.
 
 ### 5.7.6.0.0
