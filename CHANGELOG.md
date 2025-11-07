@@ -1,7 +1,18 @@
-## Changelog
+# Changelog
 
 Note the first digit of every adapter version corresponds to the major version of the Chartboost Mediation SDK compatible with that adapter. 
 Adapters are compatible with any Chartboost Mediation SDK version within that major version.
+
+All official releases can be found on this repository's [releases page](https://github.com/ChartBoost/chartboost-mediation-ios-adapter-mintegral/releases).
+
+## Table of Contents
+- [Mediation 5](#mediation-5)
+- [Mediation 4](#mediation-4)
+
+## Mediation 5
+
+### 5.8.0.0.0
+- This version of the adapter has been certified with MintegralAdSDK 8.0.0.
 
 ### 5.7.7.0.0
 - This version of the adapter has been certified with MintegralAdSDK 7.7.0.
@@ -10,6 +21,11 @@ Adapters are compatible with any Chartboost Mediation SDK version within that ma
 - The minimum deployment target compatible with this adapter is now iOS 13.
 - This version of the adapter has been certified with ChartboostMediationSDK 5.0.0.
 - This version of the adapter has been certified with MintegralAdSDK 7.6.0.
+
+## Mediation 4
+
+### 4.7.7.0.0
+- This version of the adapter has been certified with MintegralAdSDK 7.7.0.
 
 ### 4.7.6.0.0
 - This version of the adapter has been certified with MintegralAdSDK 7.6.0.

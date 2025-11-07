@@ -1,4 +1,4 @@
-// Copyright 2022-2024 Chartboost, Inc.
+// Copyright 2022-2025 Chartboost, Inc.
 //
 // Use of this source code is governed by an MIT-style
 // license that can be found in the LICENSE file.
@@ -172,6 +172,8 @@ final class MintegralAdapter: PartnerAdapter {
             return nil
         }
         switch code {
+        case .kMTGErrorCodeBannerSizeInvalid:
+            return .loadFailureInvalidBannerSize
         case .KMTGErrorCodeEmptyUnitId:
             return .loadFailureInvalidPartnerPlacement
         case .KMTGErrorCodeEmptyBidToken:
@@ -228,6 +230,8 @@ final class MintegralAdapter: PartnerAdapter {
             return nil
         }
         switch code {
+        case .kMTGErrorCodeBannerSizeInvalid:
+            return .showFailureInvalidBannerSize
         case .KMTGErrorCodeEmptyUnitId:
             return .showFailureInvalidPartnerPlacement
         case .kMTGErrorCodeNoAds:
